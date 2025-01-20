@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ca008d08bbf684e39287b8bfa1796b3a",
+    "content-hash": "ae50d2a8a36cdc2c47edcb965c188835",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -333,43 +333,39 @@
         },
         {
             "name": "linecorp/line-bot-sdk",
-            "version": "v10.0.2",
+            "version": "7.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/line/line-bot-sdk-php.git",
-                "reference": "5538dceed6f066f4562a1c2858bbda1a60a16aae"
+                "reference": "210d87af3f5fa3ed7837c3c875e39e1e3caeb9b7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/line/line-bot-sdk-php/zipball/5538dceed6f066f4562a1c2858bbda1a60a16aae",
-                "reference": "5538dceed6f066f4562a1c2858bbda1a60a16aae",
+                "url": "https://api.github.com/repos/line/line-bot-sdk-php/zipball/210d87af3f5fa3ed7837c3c875e39e1e3caeb9b7",
+                "reference": "210d87af3f5fa3ed7837c3c875e39e1e3caeb9b7",
                 "shasum": ""
             },
             "require": {
-                "guzzlehttp/guzzle": "^7.3",
-                "guzzlehttp/psr7": "^1.7 || ^2.0",
-                "php": ">=8.1"
+                "ext-curl": "*",
+                "ext-json": "*",
+                "ext-sockets": "*",
+                "php": ">=5.6"
             },
             "require-dev": {
-                "guzzlehttp/guzzle": "^7.3",
-                "guzzlehttp/psr7": "^1.7 || ^2.0",
                 "orchestra/testbench": "*",
-                "phpmd/phpmd": "2.15.0",
-                "phpstan/phpstan": "^2.0",
-                "phpunit/phpunit": "^10.2",
-                "squizlabs/php_codesniffer": "3.11.2"
+                "phpmd/phpmd": "~2.9",
+                "phpunit/phpunit": "^4.8.36||^5||^6||^7",
+                "squizlabs/php_codesniffer": "~3.5"
+            },
+            "suggest": {
+                "apigen/apigen": "Install with roave/better-reflection:dev-master to generate docs",
+                "roave/better-reflection": "Required by apigen/apigen:dev-master"
             },
             "type": "library",
             "extra": {
                 "laravel": {
                     "aliases": {
-                        "LINELiffApi": "LINE\\Laravel\\Facades\\LINELiffApi",
-                        "LINEInsightApi": "LINE\\Laravel\\Facades\\LINEInsightApi",
-                        "LINEMessagingApi": "LINE\\Laravel\\Facades\\LINEMessagingApi",
-                        "LINEMessagingBlobApi": "LINE\\Laravel\\Facades\\LINEMessagingBlobApi",
-                        "LINEManageAudienceApi": "LINE\\Laravel\\Facades\\LINEManageAudienceApi",
-                        "LINEChannelAccessTokenApi": "LINE\\Laravel\\Facades\\LINEChannelAccessTokenApi",
-                        "LINEManageAudienceBlobApi": "LINE\\Laravel\\Facades\\LINEManageAudienceBlobApi"
+                        "LINEBot": "LINE\\Laravel\\Facade\\LINEBot"
                     },
                     "providers": [
                         "LINE\\Laravel\\LINEBotServiceProvider"
@@ -378,15 +374,7 @@
             },
             "autoload": {
                 "psr-4": {
-                    "LINE\\Parser\\": "src/parser/lib/",
-                    "LINE\\Laravel\\": "src/laravel/lib/",
-                    "LINE\\Webhook\\": "src/webhook/lib/",
-                    "LINE\\Constants\\": "src/constants/",
-                    "LINE\\Clients\\Liff\\": "src/clients/liff/lib/",
-                    "LINE\\Clients\\Insight\\": "src/clients/insight/lib/",
-                    "LINE\\Clients\\MessagingApi\\": "src/clients/messaging-api/lib/",
-                    "LINE\\Clients\\ManageAudience\\": "src/clients/manage-audience/lib/",
-                    "LINE\\Clients\\ChannelAccessToken\\": "src/clients/channel-access-token/lib/"
+                    "LINE\\": "src/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -402,7 +390,7 @@
                 {
                     "name": "Satoru Yoshihara",
                     "email": "vaduz0@gmail.com",
-                    "role": "Retired"
+                    "role": "Maintainer"
                 },
                 {
                     "name": "Satoshi Shibuya",
@@ -424,9 +412,9 @@
             ],
             "support": {
                 "issues": "https://github.com/line/line-bot-sdk-php/issues",
-                "source": "https://github.com/line/line-bot-sdk-php/tree/v10.0.2"
+                "source": "https://github.com/line/line-bot-sdk-php/tree/7.0.0"
             },
-            "time": "2025-01-20T02:42:41+00:00"
+            "time": "2021-03-11T12:19:26+00:00"
         },
         {
             "name": "psr/http-client",
