@@ -1,0 +1,16 @@
+# Composerのライブラリ
+vendor/
+
+# ログファイル
+*.log
+
+# 環境変数ファイル
+*.env
+
+# IDEの設定ファイル（VS Code, PHPStormなど）
+.vscode/
+.idea/
+
+# その他不要なファイル
+*.bak
+*.tmp
