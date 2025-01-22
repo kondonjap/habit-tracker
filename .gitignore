@@ -14,3 +14,6 @@ vendor/
 # その他不要なファイル
 *.bak
 *.tmp
+
+# 定数ファイル
+/config.php

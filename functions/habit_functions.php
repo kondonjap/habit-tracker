@@ -23,6 +23,21 @@ function getHabitListResponse($pdo, $userId) {
     }
 }
 
+function getHabitList($pdo, $userId) {
+    try {
+        $query = "SELECT habit_name FROM habits WHERE user_id = :user_id";
+        $stmt = $pdo->prepare($query);
+        $stmt->execute([':user_id' => $userId]);
+        $habits = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // 配列形式で返却
+        return $habits;
+    } catch (PDOException $e) {
+        error_log('Database Error in getHabitList: ' . $e->getMessage());
+        return []; // エラー時は空配列を返す
+    }
+}
+
 function registerHabit($pdo, $userId, $habitName) {
     try {
         // 既存チェック
