@@ -1,14 +1,15 @@
 <?php
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/db.php'; // データベース接続設定ファイル
+require_once __DIR__ . '/functions/habit_functions.php'; // 習慣関連関数
 
 use LINE\LINEBot;
 use LINE\LINEBot\HTTPClient\CurlHTTPClient;
 use LINE\LINEBot\MessageBuilder\TextMessageBuilder;
 
 // LINE Bot設定
-$channelAccessToken = 'GUc0oWfaWfAhEDThgFI10VfsH/Cm319YTHm0rt2oQoDx4WEJGAlh4wnE0c1M2YsY4X8O748pHK1VGyOfoMzFRWvsIV/WF8fS6oVtWNSpLVjWd3+LU3OfgUhD3vmqcgQm9n6e/bYazYj0qkT6YGhkVAdB04t89/1O/w1cDnyilFU=';
-$channelSecret = '45507695ab27b0c71178e50a4809c92e';
+$channelAccessToken = 'YOUR_CHANNEL_ACCESS_TOKEN';
+$channelSecret = 'YOUR_CHANNEL_SECRET';
 
 // LINE Botクライアントの初期化
 $httpClient = new CurlHTTPClient($channelAccessToken);
@@ -23,42 +24,44 @@ error_log('Webhook Request: ' . $content);
 
 if (!empty($events['events'])) {
     foreach ($events['events'] as $event) {
-        // ユーザーからのテキストメッセージを処理
         if ($event['type'] === 'message' && $event['message']['type'] === 'text') {
             $userId = $event['source']['userId'];
             $replyToken = $event['replyToken'];
             $userMessage = $event['message']['text'];
-            if (strpos($userMessage, '登録:') === 0) {
-                error_log("Extracted Habit Name: " . $userMessage);
-                // マルチバイト対応の文字列切り出し
-                $habitName = trim(mb_substr($userMessage, 3, null, 'UTF-8'));
-                error_log("Extracted Habit Name: " . $habitName);
-                $habitName = mb_convert_encoding($habitName, 'UTF-8'); // UTF-8エンコーディングを確認;
 
-                try {
-                    // データベースに習慣を登録
-                    $query = "INSERT INTO habits (user_id, habit_name) VALUES (:user_id, :habit_name)";
-                    $stmt = $pdo->prepare($query);
-                    $stmt->execute([
-                        ':user_id' => $userId,
-                        ':habit_name' => $habitName
-                    ]);
-                    error_log("Extracted Habit Name: " . $habitName);
-                    $replyMessage = "習慣「{$habitName}」を登録しました！";
-                } catch (PDOException $e) {
-                    $replyMessage = "習慣の登録に失敗しました。";
+            if ($userMessage === '一覧表示') {
+                // 習慣一覧を取得してFlexメッセージを生成
+                $habits = getHabitList($pdo, $userId);
+                if (!empty($habits)) {
+                    $flexMessage = createHabitFlexMessage($habits);
+                    $response = $httpClient->post(
+                        'https://api.line.me/v2/bot/message/reply',
+                        [
+                            'headers' => [
+                                'Authorization' => 'Bearer ' . $channelAccessToken,
+                                'Content-Type' => 'application/json',
+                            ],
+                            'body' => json_encode([
+                                'replyToken' => $replyToken,
+                                'messages' => [$flexMessage],
+                            ]),
+                        ]
+                    );
+                } else {
+                    $replyMessage = "登録された習慣がありません。";
+                    $textMessageBuilder = new TextMessageBuilder($replyMessage);
+                    $bot->replyMessage($replyToken, $textMessageBuilder);
                 }
+            } elseif (strpos($userMessage, '登録:') === 0) {
+                // 習慣登録処理
+                $habitName = trim(mb_substr($userMessage, 3, null, 'UTF-8'));
+                $replyMessage = registerHabit($pdo, $userId, $habitName);
+                $textMessageBuilder = new TextMessageBuilder($replyMessage);
+                $bot->replyMessage($replyToken, $textMessageBuilder);
             } else {
                 $replyMessage = "習慣を登録するには「登録:習慣名」と送信してください。";
-            }
-
-            // メッセージの返信
-            $textMessageBuilder = new TextMessageBuilder($replyMessage);
-            $response = $bot->replyMessage($replyToken, $textMessageBuilder);
-
-            // エラーチェック
-            if (!$response->isSucceeded()) {
-                error_log('Reply Error: ' . $response->getHTTPStatus() . ' ' . $response->getRawBody());
+                $textMessageBuilder = new TextMessageBuilder($replyMessage);
+                $bot->replyMessage($replyToken, $textMessageBuilder);
             }
         }
     }
