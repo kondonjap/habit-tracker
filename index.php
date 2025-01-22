@@ -7,8 +7,8 @@ use LINE\LINEBot\HTTPClient\CurlHTTPClient;
 use LINE\LINEBot\MessageBuilder\TextMessageBuilder;
 
 // LINE Bot設定
-$channelAccessToken = 'YOUR_CHANNEL_ACCESS_TOKEN';
-$channelSecret = 'YOUR_CHANNEL_SECRET';
+$channelAccessToken = 'GUc0oWfaWfAhEDThgFI10VfsH/Cm319YTHm0rt2oQoDx4WEJGAlh4wnE0c1M2YsY4X8O748pHK1VGyOfoMzFRWvsIV/WF8fS6oVtWNSpLVjWd3+LU3OfgUhD3vmqcgQm9n6e/bYazYj0qkT6YGhkVAdB04t89/1O/w1cDnyilFU=';
+$channelSecret = '45507695ab27b0c71178e50a4809c92e';
 
 // LINE Botクライアントの初期化
 $httpClient = new CurlHTTPClient($channelAccessToken);
