@@ -28,10 +28,12 @@ if (!empty($events['events'])) {
             $userId = $event['source']['userId'];
             $replyToken = $event['replyToken'];
             $userMessage = $event['message']['text'];
-
             if (strpos($userMessage, '登録:') === 0) {
-                // ユーザーが「登録:習慣名」と送信した場合
-                $habitName = substr($userMessage, 4);
+                error_log("Extracted Habit Name: " . $userMessage);
+                // マルチバイト対応の文字列切り出し
+                $habitName = trim(mb_substr($userMessage, 3, null, 'UTF-8'));
+                error_log("Extracted Habit Name: " . $habitName);
+                $habitName = mb_convert_encoding($habitName, 'UTF-8'); // UTF-8エンコーディングを確認;
 
                 try {
                     // データベースに習慣を登録
@@ -41,7 +43,7 @@ if (!empty($events['events'])) {
                         ':user_id' => $userId,
                         ':habit_name' => $habitName
                     ]);
-
+                    error_log("Extracted Habit Name: " . $habitName);
                     $replyMessage = "習慣「{$habitName}」を登録しました！";
                 } catch (PDOException $e) {
                     $replyMessage = "習慣の登録に失敗しました。";
