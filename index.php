@@ -26,14 +26,108 @@ $bot = new LINEBot($httpClient, ['channelSecret' => $channelSecret]);
 // Webhookリクエストの処理
 $content = file_get_contents('php://input');
 $events = json_decode($content, true);
-
+// ログ出力
+error_log('Webhook Content: ' . $content);
 if (!empty($events['events'])) {
     foreach ($events['events'] as $event) {
         if ($event['type'] === 'message' && $event['message']['type'] === 'text') {
             $userId = $event['source']['userId'];
             $replyToken = $event['replyToken'];
             $userMessage = $event['message']['text'];
-
+            // ユーザーが「メッセージ」と送信した場合
+            if ($userMessage === 'メッセージ') {
+                // Flex Messageの内容を定義
+                $flexMessageContent = [
+                    'type' => 'bubble',
+                    'body' => [
+                        'type' => 'box',
+                        'layout' => 'vertical',
+                        'contents' => [
+                            [
+                                'type' => 'text',
+                                'text' => 'これはFlexメッセージです！',
+                                'weight' => 'bold',
+                                'size' => 'lg',
+                                'wrap' => true,
+                            ],
+                            [
+                                'type' => 'text',
+                                'text' => '以下のボタンを押してください。',
+                                'size' => 'sm',
+                                'color' => '#555555',
+                                'wrap' => true,
+                            ]
+                        ]
+                    ],
+                    'footer' => [
+                        'type' => 'box',
+                        'layout' => 'horizontal',
+                        'contents' => [
+                            [
+                                'type' => 'button',
+                                'style' => 'primary',
+                                'action' => [
+                                    'type' => 'postback',
+                                    'label' => '完了',
+                                    'data' => 'action=done'
+                                ]
+                            ],
+                            [
+                                'type' => 'button',
+                                'style' => 'secondary',
+                                'action' => [
+                                    'type' => 'postback',
+                                    'label' => '削除',
+                                    'data' => 'action=delete'
+                                ]
+                            ]
+                        ]
+                    ]
+                ];
+            
+                // Push APIを使用してFlexメッセージを送信
+                $requestBody = [
+                    'to' => $userId, // 送信先のUser ID
+                    'messages' => [
+                        [
+                            'type' => 'flex',
+                            'altText' => 'Flexメッセージの例',
+                            'contents' => $flexMessageContent,
+                        ],
+                    ],
+                ];
+            
+                // リクエスト内容をログに記録
+                error_log('Request Body: ' . json_encode($requestBody, JSON_UNESCAPED_UNICODE));
+            
+                try {
+                    // LINE APIへリクエストを送信
+                    $response = $httpClient->post(
+                        'https://api.line.me/v2/bot/message/push',
+                        [
+                            'headers' => [
+                                'Authorization' => 'Bearer ' . $channelAccessToken,
+                                'Content-Type' => 'application/json',
+                            ],
+                            'body' => json_encode($requestBody, JSON_UNESCAPED_UNICODE),
+                        ]
+                    );
+            
+                    // ログに結果を記録
+                    if ($response->getHTTPStatus() !== 200) {
+                        error_log('LINE API Error: ' . $response->getRawBody());
+                    } else {
+                        error_log('LINE API Success: ' . $response->getRawBody());
+                    }
+                } catch (Exception $e) {
+                    // 例外発生時のログ記録
+                    error_log('Exception caught: ' . $e->getMessage());
+                }
+            }
+            
+            
+            
+            
             if ($userMessage === '一覧表示') {
                 // データベースから習慣一覧を取得
                 $habits = getHabitList($pdo, $userId);
@@ -41,10 +135,15 @@ if (!empty($events['events'])) {
                 if (!empty($habits)) {
                     // Quick Replyのボタンを作成
                     $quickReplyButtons = [];
-                    foreach ($habits as $habit) {error_log("Postback Data: " . print_r($habit, true));
-
+                    foreach ($habits as $habit) {
+                        // 完了ボタン
                         $quickReplyButtons[] = new QuickReplyButtonBuilder(
-                            new PostbackTemplateActionBuilder($habit['habit_name'], "action=done&id=" . $habit['id'])
+                            new PostbackTemplateActionBuilder("完了", "action=done&id=" . $habit['id'])
+                        );
+                    
+                        // 削除ボタン
+                        $quickReplyButtons[] = new QuickReplyButtonBuilder(
+                            new PostbackTemplateActionBuilder("削除", "action=delete&id=" . $habit['id'])
                         );
                     }
 
@@ -72,28 +171,40 @@ if (!empty($events['events'])) {
         } elseif ($event['type'] === 'postback') {
             // Postbackイベントの処理
             parse_str($event['postback']['data'], $data);
-            if ($data['action'] === 'done') {
-                $habitId = $data['id']; // 修正箇所
-                error_log("Raw Postback Data: " . $event['postback']['data']);
-                error_log("Postback Data: " . print_r($data, true));
+        
+            error_log("Postback Data: " . print_r($data, true));
+        
+            if ($data['action'] === 'done' && !empty($data['id'])) {
+                $habitId = $data['id'];
         
                 // データベースに「完了」ステータスを登録
                 $stmt = $pdo->prepare("UPDATE habits SET done_at = NOW() WHERE id = :id");
                 $stmt->execute([':id' => $habitId]);
+        
                 $replyMessage = "習慣が完了として登録されました！";
+            } elseif ($data['action'] === 'delete' && !empty($data['id'])) {
+                $habitId = $data['id'];
         
-                // replyTokenを使ってメッセージを返信
-                $replyToken = $event['replyToken'];
-                $textMessageBuilder = new TextMessageBuilder($replyMessage);
+                // データベースから習慣を削除
+                $stmt = $pdo->prepare("DELETE FROM habits WHERE id = :id");
+                $stmt->execute([':id' => $habitId]);
         
-                $response = $bot->replyMessage($replyToken, $textMessageBuilder);
+                $replyMessage = "習慣が削除されました！";
+            } else {
+                $replyMessage = "無効な操作です。";
+            }
         
-                // ログに結果を記録
-                if (!$response->isSucceeded()) {
-                    error_log('LINE API Error: ' . $response->getRawBody());
-                } else {
-                    error_log('LINE API Success: ' . $response->getRawBody());
-                }
+            // メッセージを返信
+            $replyToken = $event['replyToken'];
+            $textMessageBuilder = new TextMessageBuilder($replyMessage);
+        
+            $response = $bot->replyMessage($replyToken, $textMessageBuilder);
+        
+            // ログに結果を記録
+            if (!$response->isSucceeded()) {
+                error_log('LINE API Error: ' . $response->getRawBody());
+            } else {
+                error_log('LINE API Success: ' . $response->getRawBody());
             }
         }
     }
