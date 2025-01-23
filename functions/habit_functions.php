@@ -67,7 +67,7 @@ function registerHabit($pdo, $userId, $habitName) {
     }
 }
 
-function createHabitFlexMessage($habits) {
+function __createHabitFlexMessage($habits) {
     $bubbles = [];
     foreach ($habits as $habit) {
         $bubbles[] = [
@@ -97,4 +97,33 @@ function createHabitFlexMessage($habits) {
         ]
     ];
 }
+
+function createHabitFlexMessage() {
+    return [
+        'type' => 'flex',
+        'altText' => '習慣一覧',
+        'contents' => [
+            'type' => 'carousel',
+            'contents' => [
+                [
+                    'type' => 'bubble',
+                    'body' => [
+                        'type' => 'box',
+                        'layout' => 'vertical',
+                        'contents' => [
+                            [
+                                'type' => 'text',
+                                'text' => 'サッカー', // 固定値
+                                'weight' => 'bold',
+                                'size' => 'lg',
+                                'wrap' => true
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ]
+    ];
+}
+
 ?>
