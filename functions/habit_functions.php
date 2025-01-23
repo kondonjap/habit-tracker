@@ -25,7 +25,7 @@ function getHabitListResponse($pdo, $userId) {
 
 function getHabitList($pdo, $userId) {
     try {
-        $query = "SELECT habit_name FROM habits WHERE user_id = :user_id";
+        $query = "SELECT id,habit_name FROM habits WHERE user_id = :user_id";
         $stmt = $pdo->prepare($query);
         $stmt->execute([':user_id' => $userId]);
         $habits = $stmt->fetchAll(PDO::FETCH_ASSOC);
