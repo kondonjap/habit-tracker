@@ -85,7 +85,7 @@ if (!empty($events['events'])) {
                     ]
                 ];
             
-                // Push APIを使用してFlexメッセージを送信
+                // Push APIでFlexメッセージを送信
                 $requestBody = [
                     'to' => $userId, // 送信先のUser ID
                     'messages' => [
@@ -100,30 +100,26 @@ if (!empty($events['events'])) {
                 // リクエスト内容をログに記録
                 error_log('Request Body: ' . json_encode($requestBody, JSON_UNESCAPED_UNICODE));
             
-                try {
-                    // LINE APIへリクエストを送信
-                    $response = $httpClient->post(
-                        'https://api.line.me/v2/bot/message/push',
-                        [
-                            'headers' => [
-                                'Authorization' => 'Bearer ' . $channelAccessToken,
-                                'Content-Type' => 'application/json',
-                            ],
-                            'body' => json_encode($requestBody, JSON_UNESCAPED_UNICODE),
-                        ]
-                    );
+                // LINE APIへリクエストを送信
+                $response = $httpClient->post(
+                    'https://api.line.me/v2/bot/message/push',
+                    [
+                        'headers' => [
+                            'Authorization' => 'Bearer ' . $channelAccessToken,
+                            'Content-Type' => 'application/json',
+                        ],
+                        'body' => json_encode($requestBody, JSON_UNESCAPED_UNICODE),
+                    ]
+                );
             
-                    // ログに結果を記録
-                    if ($response->getHTTPStatus() !== 200) {
-                        error_log('LINE API Error: ' . $response->getRawBody());
-                    } else {
-                        error_log('LINE API Success: ' . $response->getRawBody());
-                    }
-                } catch (Exception $e) {
-                    // 例外発生時のログ記録
-                    error_log('Exception caught: ' . $e->getMessage());
+                // ログに結果を記録
+                if ($response->getHTTPStatus() !== 200) {
+                    error_log('LINE API Error: ' . $response->getRawBody());
+                } else {
+                    error_log('LINE API Success: ' . $response->getRawBody());
                 }
             }
+            
             
             
             
